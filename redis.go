@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/go-redis/redis"
-	faasflow "github.com/s8sg/faas-flow"
+	faasflow "github.com/faasflow/sdk"
 )
 
 type RedisDataStore struct {
