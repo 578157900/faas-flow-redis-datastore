@@ -2,11 +2,9 @@ package RedisDataStore
 
 import (
 	"fmt"
-	"os"
-	"strings"
 
-	"github.com/go-redis/redis"
 	faasflow "github.com/faasflow/sdk"
+	"github.com/go-redis/redis"
 )
 
 type RedisDataStore struct {
@@ -14,16 +12,10 @@ type RedisDataStore struct {
 	redisClient redis.UniversalClient
 }
 
-// InitFromEnv Initialize a minio DataStore object based on configuration
-// Depends on s3_url, s3-secret-key, s3-access-key, s3_region(optional), workflow_name
-func InitFromEnv() (faasflow.DataStore, error) {
+func GetRedisDataStore(redisUri string) (faasflow.DataStore, error) {
 	ds := &RedisDataStore{}
-
-	endpoint := os.Getenv("redis_url")
-	addrs := strings.Split(endpoint, ",")
-	client := redis.NewUniversalClient(&redis.UniversalOptions{
-		MasterName: os.Getenv("redis_master"),
-		Addrs:      addrs,
+	client := redis.NewClient(&redis.Options{
+		Addr: redisUri,
 	})
 	err := client.Ping().Err()
 	if err != nil {
@@ -48,13 +40,13 @@ func (this *RedisDataStore) Init() error {
 	return nil
 }
 
-func (this *RedisDataStore) Set(key string, value string) error {
+func (this *RedisDataStore) Set(key string, value []byte) error {
 	if this.redisClient == nil {
 		return fmt.Errorf("redis client not initialized, use GetRedisDataStore()")
 	}
 
 	fullPath := getPath(this.bucketName, key)
-	_, err := this.redisClient.Set(fullPath, value, 0).Result()
+	_, err := this.redisClient.Set(fullPath, string(value), 0).Result()
 	if err != nil {
 		return fmt.Errorf("error writing: %s, error: %s", fullPath, err.Error())
 	}
@@ -62,17 +54,17 @@ func (this *RedisDataStore) Set(key string, value string) error {
 	return nil
 }
 
-func (this *RedisDataStore) Get(key string) (string, error) {
+func (this *RedisDataStore) Get(key string) ([]byte, error) {
 	if this.redisClient == nil {
-		return "", fmt.Errorf("redis client not initialized, use GetRedisDataStore()")
+		return nil, fmt.Errorf("redis client not initialized, use GetRedisDataStore()")
 	}
 
 	fullPath := getPath(this.bucketName, key)
 	value, err := this.redisClient.Get(fullPath).Result()
 	if err != nil {
-		return "", fmt.Errorf("error reading: %s, error: %s", fullPath, err.Error())
+		return nil, fmt.Errorf("error reading: %s, error: %s", fullPath, err.Error())
 	}
-	return value, nil
+	return []byte(value), nil
 }
 
 func (this *RedisDataStore) Del(key string) error {
