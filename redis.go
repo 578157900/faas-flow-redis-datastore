@@ -19,9 +19,9 @@ func GetRedisDataStore(redisUri string) (faasflow.DataStore, error) {
 	if err != nil {
 		panic(fmt.Sprintf("failed to parse redis: %v", err))
 	}
-	client = redis.NewClient(opts)
+	client := redis.NewClient(opts)
 	
-	err := client.Ping().Err()
+	err = client.Ping().Err()
 	if err != nil {
 		return nil, err
 	}
