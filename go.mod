@@ -1,4 +1,4 @@
-module github.com/faasflow/faas-flow-redis-datastore
+module github.com/578157900/faas-flow-redis-datastore
 
 go 1.13
 
