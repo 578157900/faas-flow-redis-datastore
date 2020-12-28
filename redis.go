@@ -14,9 +14,13 @@ type RedisDataStore struct {
 
 func GetRedisDataStore(redisUri string) (faasflow.DataStore, error) {
 	ds := &RedisDataStore{}
-	client := redis.NewClient(&redis.Options{
-		Addr: redisUri,
-	})
+	
+	opts, err := redis.ParseURL(redisUri)
+	if err != nil {
+		panic(fmt.Sprintf("failed to parse redis: %v", err))
+	}
+	client := redis.NewClient(opts)
+	
 	err := client.Ping().Err()
 	if err != nil {
 		return nil, err
